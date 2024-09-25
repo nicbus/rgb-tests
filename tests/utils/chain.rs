@@ -235,13 +235,13 @@ pub fn get_height_custom(instance: u8) -> u32 {
 pub fn indexer_url(instance: u8, network: Network) -> String {
     match (INDEXER.get().unwrap(), network, instance) {
         (Indexer::Electrum, Network::Mainnet, _) => ELECTRUM_MAINNET_URL,
-        (Indexer::Electrum, Network::Regtest, INSTANCE_1) => ELECTRUM_1_REGTEST_URL,
-        (Indexer::Electrum, Network::Regtest, INSTANCE_2) => ELECTRUM_2_REGTEST_URL,
-        (Indexer::Electrum, Network::Regtest, INSTANCE_3) => ELECTRUM_3_REGTEST_URL,
+        (Indexer::Electrum, Network::Regtest, INSTANCE_1) => &ELECTRUM_1_REGTEST_URL,
+        (Indexer::Electrum, Network::Regtest, INSTANCE_2) => &ELECTRUM_2_REGTEST_URL,
+        (Indexer::Electrum, Network::Regtest, INSTANCE_3) => &ELECTRUM_3_REGTEST_URL,
         (Indexer::Esplora, Network::Mainnet, _) => ESPLORA_MAINNET_URL,
-        (Indexer::Esplora, Network::Regtest, INSTANCE_1) => ESPLORA_1_REGTEST_URL,
-        (Indexer::Esplora, Network::Regtest, INSTANCE_2) => ESPLORA_2_REGTEST_URL,
-        (Indexer::Esplora, Network::Regtest, INSTANCE_3) => ESPLORA_3_REGTEST_URL,
+        (Indexer::Esplora, Network::Regtest, INSTANCE_1) => &ESPLORA_1_REGTEST_URL,
+        (Indexer::Esplora, Network::Regtest, INSTANCE_2) => &ESPLORA_2_REGTEST_URL,
+        (Indexer::Esplora, Network::Regtest, INSTANCE_3) => &ESPLORA_3_REGTEST_URL,
         _ => unreachable!(),
     }
     .to_string()

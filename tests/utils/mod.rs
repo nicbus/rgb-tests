@@ -5,13 +5,7 @@ pub const TEST_DATA_DIR: &str = "test-data";
 pub const INTEGRATION_DATA_DIR: &str = "integration";
 pub const STRESS_DATA_DIR: &str = "stress";
 
-pub const ELECTRUM_1_REGTEST_URL: &str = "127.0.0.1:50001";
-pub const ELECTRUM_2_REGTEST_URL: &str = "127.0.0.1:50002";
-pub const ELECTRUM_3_REGTEST_URL: &str = "127.0.0.1:50003";
 pub const ELECTRUM_MAINNET_URL: &str = "ssl://electrum.iriswallet.com:50003";
-pub const ESPLORA_1_REGTEST_URL: &str = "http://127.0.0.1:8094/regtest/api";
-pub const ESPLORA_2_REGTEST_URL: &str = "http://127.0.0.1:8095/regtest/api";
-pub const ESPLORA_3_REGTEST_URL: &str = "http://127.0.0.1:8096/regtest/api";
 pub const ESPLORA_MAINNET_URL: &str = "https://blockstream.info/api";
 pub const FAKE_TXID: &str = "e5a3e577309df31bd606f48049049d2e1e02b048206ba232944fcc053a176ccb:0";
 pub const UDA_FIXED_INDEX: u32 = 0;
@@ -23,12 +17,64 @@ pub const INSTANCE_1: u8 = 1;
 pub const INSTANCE_2: u8 = 2;
 pub const INSTANCE_3: u8 = 3;
 
+fn running_in_docker() -> bool {
+    std::path::Path::new("/.dockerenv").exists()
+}
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref ELECTRUM_1_REGTEST_URL: &'static str = {
+        if running_in_docker() {
+            "electrum_1:50001"
+        } else {
+            "127.0.0.1:50001"
+        }
+    };
+    pub static ref ELECTRUM_2_REGTEST_URL: &'static str = {
+        if running_in_docker() {
+            "electrum_2:50001"
+        } else {
+            "127.0.0.1:50002"
+        }
+    };
+    pub static ref ELECTRUM_3_REGTEST_URL: &'static str = {
+        if running_in_docker() {
+            "electrum_3:50001"
+        } else {
+            "127.0.0.1:50003"
+        }
+    };
+    pub static ref ESPLORA_1_REGTEST_URL: &'static str = {
+        if running_in_docker() {
+            "http://esplora_1:80/regtest/api"
+        } else {
+            "http://127.0.0.1:8094/regtest/api"
+        }
+    };
+    pub static ref ESPLORA_2_REGTEST_URL: &'static str = {
+        if running_in_docker() {
+            "http://esplora_2:80/regtest/api"
+        } else {
+            "http://127.0.0.1:8095/regtest/api"
+        }
+    };
+    pub static ref ESPLORA_3_REGTEST_URL: &'static str = {
+        if running_in_docker() {
+            "http://esplora_3:80/regtest/api"
+        } else {
+            "http://127.0.0.1:8096/regtest/api"
+        }
+    };
+}
+
 pub type TT = TransferType;
 pub type DT = DescriptorType;
 pub type AS = AssetSchema;
 
 pub use std::{
-    cell::OnceCell,
+    cell::{OnceCell, RefCell},
+    cmp::max,
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     env::VarError,
     ffi::OsString,
@@ -81,11 +127,8 @@ pub use psbt::{
     Beneficiary as PsbtBeneficiary, KeyMap, Payment, Prevout, PropKey, Psbt, PsbtConstructor,
     PsbtMeta, PsbtVer, Utxo,
 };
-#[cfg(not(feature = "altered"))]
 pub use psrgbt::{OpoutAndOpids, ProprietaryKeyRgb, RgbExt, RgbPsbt, TxParams};
-#[cfg(feature = "altered")]
-pub use psrgbt::{OpoutAndOpids, ProprietaryKeyRgb, RgbExt, RgbPsbt, TxParams};
-pub use rand::RngCore;
+pub use rand::{rngs::StdRng, seq::SliceRandom, Rng, RngCore, SeedableRng};
 #[cfg(not(feature = "altered"))]
 pub use rgb::{
     assignments::AssignVec,
@@ -137,7 +180,7 @@ pub use rgbstd::{
     },
     indexers::AnyResolver,
     invoice::{Beneficiary, RgbInvoice, RgbInvoiceBuilder, XChainNet},
-    persistence::{fs::FsBinStore, StashReadProvider},
+    persistence::{fs::FsBinStore, ContractStateRead, StashReadProvider},
     schema::SchemaId,
     stl::{
         AssetSpec, Attachment, Details, EmbeddedMedia, MediaType, Name, ProofOfReserves,

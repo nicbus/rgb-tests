@@ -776,6 +776,14 @@ impl Report {
             .unwrap();
     }
 
+    pub fn write_displayable(&self, content: impl Display) {
+        let mut file = OpenOptions::new()
+            .append(true)
+            .open(&self.report_path)
+            .unwrap();
+        file.write_all(format!("{content};").as_bytes()).unwrap();
+    }
+
     pub fn end_line(&self) {
         let mut file = OpenOptions::new()
             .append(true)
@@ -803,7 +811,14 @@ fn _get_wallet(
     import_kits: bool,
 ) -> TestWallet {
     std::fs::create_dir_all(&wallet_dir).unwrap();
-    println!("wallet dir: {wallet_dir:?}");
+    println!(
+        "wallet dir: {wallet_dir:?} ({})",
+        if matches!(descriptor_type, DescriptorType::Wpkh) {
+            "opret"
+        } else {
+            "tapret"
+        }
+    );
 
     let xpub_account = match wallet_account {
         WalletAccount::Private(ref xpriv_account) => xpriv_account.to_xpub_account(),
@@ -1034,6 +1049,17 @@ impl TestWallet {
 
     pub fn get_address(&mut self) -> Address {
         self.get_derived_address(true).addr
+    }
+
+    pub fn get_unspents(&mut self) -> HashMap<Outpoint, Sats> {
+        let coins = self.wallet.wallet().address_coins();
+        let mut unspents: HashMap<Outpoint, Sats> = HashMap::new();
+        for (_, u) in coins {
+            u.iter().for_each(|e| {
+                unspents.insert(e.outpoint, e.amount);
+            });
+        }
+        unspents
     }
 
     pub fn get_utxo(&mut self, sats: Option<u64>) -> Outpoint {
@@ -1500,6 +1526,34 @@ impl TestWallet {
             .data("assetOwner", Filter::Wallet(&self.wallet))
             .unwrap()
             .collect()
+    }
+
+    pub fn get_contract_balance(&self, contract_id: ContractId) -> u64 {
+        let asset_schema = self
+            .stock()
+            .contract_data(contract_id)
+            .unwrap()
+            .schema
+            .schema_id()
+            .into();
+        match asset_schema {
+            AssetSchema::Nia | AssetSchema::Cfa | AssetSchema::Ifa | AssetSchema::Pfa => {
+                // balance can overflow with show_tentative=true
+                let allocations = self.contract_fungible_allocations(contract_id, false);
+                let mut balance = 0;
+                for a in allocations {
+                    let outpoint = a.seal.outpoint().unwrap();
+                    let amount = a.state;
+                    if self.wallet.wallet().utxo(outpoint).is_some() {
+                        balance += amount.value();
+                    }
+                }
+                balance
+            }
+            AssetSchema::Uda => {
+                unimplemented!("todo");
+            }
+        }
     }
 
     pub fn history(&self, contract_id: ContractId) -> Vec<ContractOp> {
