@@ -61,6 +61,7 @@ change_help() {
 }
 
 status() {
+    # shellcheck disable=SC2016
     git submodule foreach --quiet \
         'echo "" $(git rev-list -n1 HEAD) $sm_path $(git describe --all | sed "s,^\(tags\|remotes\|heads\)/,(,;s/$/)/")'
 }
@@ -91,9 +92,9 @@ esac
 while [ -n "$1" ]; do
     case $1 in
         -h | --help)
-             change_help
-             exit 0
-             ;;
+            change_help
+            exit 0
+            ;;
         -b | --branch)
             BRANCH="$2"
             shift
@@ -138,7 +139,7 @@ pushd "$DIR" >/dev/null || exit 1
 if ! [ -r .gitmodules ]; then
     _die "project has no git submodules"
 fi
-SUBS=$(awk -F '"' '/submodule/ {print $2}' .gitmodules)
+SUBS=$(git submodule | awk '{print $2}' | grep -v altered_submodules)
 
 # update submodule revs
 for sub in $SUBS; do
