@@ -800,35 +800,35 @@ fn random_transfers() {
     ) -> Recipients {
         // single recipient with 80% probability, multiple (random between 1 and max) with 20% probability
         let max_recipients = wallet_idxs.len().min(3);
-        let num_recipients = if rng.gen_bool(0.8) {
+        let num_recipients = if rng.random_bool(0.8) {
             1
         } else {
-            rng.gen_range(1..=max_recipients)
+            rng.random_range(1..=max_recipients)
         };
         let mut recipients: Recipients = vec![];
         for i in 1..=num_recipients {
             // random wallet, possibly including the sender or duplicates
-            let recv_idx = rng.gen_range(0..wallet_idxs.len());
+            let recv_idx = rng.random_range(0..wallet_idxs.len());
             // random contract with available remaining balance
             let cidxs: Vec<u8> = contract_re_map
                 .iter()
                 .filter(|(_, r)| **r > 0)
                 .map(|(c, _)| *c)
                 .collect();
-            let pick = rng.gen_range(0..cidxs.len());
+            let pick = rng.random_range(0..cidxs.len());
             let cidx = *cidxs.get(pick).unwrap();
             // random transfer type
-            let transfer_type = if rng.gen_bool(0.5) {
+            let transfer_type = if rng.random_bool(0.5) {
                 TransferType::Witness
             } else {
                 TransferType::Blinded
             };
             // random send amount (send all remaining to last recipient with 10% probability)
             let remaining = contract_re_map.get_mut(&cidx).unwrap();
-            let divisor = if i == num_recipients && rng.gen_bool(0.1) {
+            let divisor = if i == num_recipients && rng.random_bool(0.1) {
                 1
             } else {
-                rng.gen_range(num_recipients as u64..=10)
+                rng.random_range(num_recipients as u64..=10)
             };
             let frac = max(1, *remaining / divisor);
             // update contract send amount and remaining balance and add the new recipient
@@ -925,8 +925,8 @@ fn random_transfers() {
         // choose a UTXO for change, if needed
         let change_utxo = if change {
             // choose a random available UTXO (if any) with 80% probability
-            if !remaining_utxos.is_empty() && rng.gen_bool(0.8) {
-                let change_utxo_idx = rng.gen_range(0..remaining_utxos.len());
+            if !remaining_utxos.is_empty() && rng.random_bool(0.8) {
+                let change_utxo_idx = rng.random_range(0..remaining_utxos.len());
                 Some(*remaining_utxos[change_utxo_idx].0)
             } else {
                 None
@@ -979,11 +979,11 @@ fn random_transfers() {
                         .filter(|u| !utxos_being_spent.contains(&&u.0))
                         .collect();
                     // use a random available UTXO (if any) with 80% probability
-                    let outpoint = if !usable_utxos.is_empty() && rng.gen_bool(0.8) {
+                    let outpoint = if !usable_utxos.is_empty() && rng.random_bool(0.8) {
                         usable_utxos.sort_by(|(_, a_sats, a_idx), (_, b_sats, b_idx)| {
                             a_sats.cmp(b_sats).then_with(|| a_idx.cmp(b_idx))
                         });
-                        let utxo_idx = rng.gen_range(0..usable_utxos.len());
+                        let utxo_idx = rng.random_range(0..usable_utxos.len());
                         Some(usable_utxos[utxo_idx].0)
                     } else {
                         None
@@ -1282,7 +1282,7 @@ fn random_transfers() {
                 println!("termination requested, exiting...");
                 return;
             }
-            let descriptor_type = if rng.gen_bool(0.5) {
+            let descriptor_type = if rng.random_bool(0.5) {
                 DescriptorType::Wpkh
             } else {
                 DescriptorType::Tr
@@ -1303,9 +1303,9 @@ fn random_transfers() {
                 println!("termination requested, exiting...");
                 return;
             }
-            let wallet_idx = rng.gen_range(0..wallets.len());
+            let wallet_idx = rng.random_range(0..wallets.len());
             let wallet = wallets.get_mut(wallet_idx);
-            let schema_idx = rng.gen_range(0..schemas.len());
+            let schema_idx = rng.random_range(0..schemas.len());
             let schema = schemas[schema_idx];
             let asset = match schema_idx {
                 0 => wallet.issue_cfa(issued_supply, None),

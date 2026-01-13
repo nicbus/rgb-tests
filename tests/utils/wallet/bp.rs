@@ -115,7 +115,7 @@ impl BpTestWallet {
         if let Some(rng) = rng {
             rng.fill_bytes(&mut seed);
         } else {
-            rand::thread_rng().fill_bytes(&mut seed);
+            rand::rng().fill_bytes(&mut seed);
         }
 
         let (xpriv_account, wallet_dir) = Self::gen_keys(&seed);
