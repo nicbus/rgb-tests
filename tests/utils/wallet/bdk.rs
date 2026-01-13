@@ -68,7 +68,7 @@ impl BdkTestWallet {
             panic!("cannot use bdk in tapret mode");
         }
         let mut seed = vec![0u8; 128];
-        rand::thread_rng().fill_bytes(&mut seed);
+        rand::rng().fill_bytes(&mut seed);
 
         let network = Network::Regtest;
 
