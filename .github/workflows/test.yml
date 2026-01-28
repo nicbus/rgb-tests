@@ -30,7 +30,7 @@ jobs:
           LLVM_COV_RELEASES: https://github.com/taiki-e/cargo-llvm-cov/releases
         run: |
           host=$(rustc -Vv | grep host | sed 's/host: //')
-          curl -fsSL $LLVM_COV_RELEASES/latest/download/cargo-llvm-cov-$host.tar.gz | tar xzf - -C "$HOME/.cargo/bin"
+          curl -fsSL $LLVM_COV_RELEASES/download/v0.6.24/cargo-llvm-cov-$host.tar.gz | tar xzf - -C "$HOME/.cargo/bin"
 
       - name: Test and generate coverage report
         run: ./tests/coverage.sh --ci

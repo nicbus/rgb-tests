@@ -107,9 +107,17 @@ done
 # --------
 
 if [ -z "$CI" ]; then
+    read -n 1 -r -p "About to install llvm-tools-preview and cargo-llvm-cov version 0.6.24. Proceed? [y/N]: " ANS
+    case "$ANS" in
+        y | Y) ;;
+        *)
+            echo "Aborting"
+            exit 2
+            ;;
+    esac
     _tit "installing requirements"
     rustup component add llvm-tools-preview
-    cargo install cargo-llvm-cov
+    cargo install cargo-llvm-cov@0.6.24
 fi
 
 # --------
